@@ -17,8 +17,13 @@
             border: 2px solid #444;
             background-color: #333;
             display: block;
-            max-width: 100%;
+            max-width: 80%;
             height: auto;
+        }
+
+        h2 {
+            margin-top: 20px;
+            color: #ddd;
         }
     </style>
 </head>
@@ -37,45 +42,56 @@
             const svg = d3.select("svg");
 
             // 💡 Função de Zoom e Pan
-            svg.call(d3.zoom()
+            const zoom = d3.zoom()
                 .scaleExtent([0.5, 5])
-                .on("zoom", function(event) {
+                .on("zoom", function (event) {
                     svg.attr("transform", event.transform);
-                }));
+                });
 
-            // 💡 Função de Pulsação para as Pétalas
+            svg.call(zoom);
+
+            // 💡 Função de Animação Pulsante
             function pulsar(element) {
                 d3.select(element)
                     .transition()
                     .duration(1000)
-                    .attr("transform", "scale(1.2)")
+                    .attr("transform", "scale(1.1)")
                     .transition()
                     .duration(1000)
                     .attr("transform", "scale(1)")
                     .on("end", () => pulsar(element));
             }
 
-            // 💡 Função de Animação de Altura das Pétalas
-            function animarPetala(element) {
-                d3.select(element)
-                    .transition()
-                    .duration(1000)
-                    .attr("height", parseFloat(d3.select(element).attr("height")) * 1.3)
-                    .transition()
-                    .duration(1000)
-                    .attr("height", parseFloat(d3.select(element).attr("height")) / 1.3)
-                    .on("end", () => animarPetala(element));
-            }
-
-            // 💡 Função de Rotação ao Clicar
+            // 💡 Função de Animação de Rotação
             function rotacionar(element) {
                 d3.select(element)
                     .transition()
                     .duration(2000)
-                    .attr("transform", "rotate(360)");
+                    .attr("transform", "rotate(360)")
+                    .on("end", () => d3.select(element).attr("transform", "rotate(0)"));
             }
 
-            // 💡 Função para Mudança de Cor ao Passar o Mouse
+            // 💡 Função de Arrastar com Drag
+            function dragstarted(event, d) {
+                d3.select(this).raise().attr("stroke", "black");
+            }
+
+            function dragged(event, d) {
+                d3.select(this)
+                    .attr("x", event.x)
+                    .attr("y", event.y);
+            }
+
+            function dragended(event, d) {
+                d3.select(this).attr("stroke", null);
+            }
+
+            const dragBehavior = d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended);
+
+            // 💡 Função de Mudança de Cor ao Passar o Mouse
             function mudarCor(element, cor) {
                 d3.select(element)
                     .transition()
@@ -83,12 +99,12 @@
                     .attr("fill", cor);
             }
 
-            // 💡 Animação e Interação das Pétalas
+            // 💡 Interação e Animação das Pétalas
             svg.selectAll("[id^='petal']")
                 .each(function() {
-                    animarPetala(this);  // Animação de altura
-                    pulsar(this);        // Animação pulsante
+                    pulsar(this);  // Animação contínua
                 })
+                .call(dragBehavior)
                 .on("mouseover", function() {
                     mudarCor(this, "yellow");
                 })
@@ -96,7 +112,7 @@
                     mudarCor(this, "red");
                 });
 
-            // 💡 Animação e Interação dos Triângulos
+            // 💡 Interação e Animação dos Triângulos
             svg.selectAll("[id^='triangle']")
                 .on("click", function() {
                     rotacionar(this);
@@ -108,29 +124,43 @@
                     mudarCor(this, "yellow");
                 });
 
-            // 💡 Animação e Interação dos Losangos
+            // 💡 Interação e Animação dos Losangos
             svg.selectAll("[id^='losangle']")
+                .on("click", function() {
+                    rotacionar(this);
+                })
                 .on("mouseover", function() {
                     mudarCor(this, "blue");
                 })
                 .on("mouseout", function() {
                     mudarCor(this, "yellow");
-                })
-                .on("click", function() {
-                    rotacionar(this);
                 });
 
-            // 💡 Animação e Interação dos Círculos Centrais (Balls)
+            // 💡 Interação e Animação dos Círculos Centrais (Balls)
             svg.selectAll("[id^='ball']")
+                .on("click", function() {
+                    rotacionar(this);
+                })
                 .on("mouseover", function() {
                     mudarCor(this, "white");
                 })
                 .on("mouseout", function() {
                     mudarCor(this, "orange");
-                })
-                .on("click", function() {
-                    rotacionar(this);
                 });
+
+            // 💡 QuadTree para Seleção Otimizada
+            const quadTree = d3.quadtree()
+                .x(d => parseFloat(d3.select(d).attr("cx")))
+                .y(d => parseFloat(d3.select(d).attr("cy")))
+                .addAll(svg.selectAll("circle").nodes());
+
+            svg.on("click", function(event) {
+                const [mx, my] = d3.pointer(event);
+                const found = quadTree.find(mx, my);
+                if (found) {
+                    mudarCor(found, "cyan");
+                }
+            });
         });
     </script>
 </body>
