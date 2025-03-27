@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Mandala Interativa com D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1c1c1c;
+            color: white;
+            text-align: center;
+        }
+
+        svg {
+            margin: 20px auto;
+            border: 2px solid #444;
+            background-color: #333;
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h2>Mandala Interativa com D3.js</h2>
+
+    <!-- Contêiner para a Mandala -->
+    <div id="mandala-container"></div>
+
+    <script>
+        // Carregar o arquivo SVG da mandala
+        d3.xml("mandala.svg").then(data => {
+            const svgNode = data.documentElement;
+            document.getElementById("mandala-container").appendChild(svgNode);
+
+            const svg = d3.select("svg");
+
+            // 💡 Função de Zoom e Pan
+            svg.call(d3.zoom()
+                .scaleExtent([0.5, 5])
+                .on("zoom", function(event) {
+                    svg.attr("transform", event.transform);
+                }));
+
+            // 💡 Função de Pulsação para as Pétalas
+            function pulsar(element) {
+                d3.select(element)
+                    .transition()
+                    .duration(1000)
+                    .attr("transform", "scale(1.2)")
+                    .transition()
+                    .duration(1000)
+                    .attr("transform", "scale(1)")
+                    .on("end", () => pulsar(element));
+            }
+
+            // 💡 Função de Animação de Altura das Pétalas
+            function animarPetala(element) {
+                d3.select(element)
+                    .transition()
+                    .duration(1000)
+                    .attr("height", parseFloat(d3.select(element).attr("height")) * 1.3)
+                    .transition()
+                    .duration(1000)
+                    .attr("height", parseFloat(d3.select(element).attr("height")) / 1.3)
+                    .on("end", () => animarPetala(element));
+            }
+
+            // 💡 Função de Rotação ao Clicar
+            function rotacionar(element) {
+                d3.select(element)
+                    .transition()
+                    .duration(2000)
+                    .attr("transform", "rotate(360)");
+            }
+
+            // 💡 Função para Mudança de Cor ao Passar o Mouse
+            function mudarCor(element, cor) {
+                d3.select(element)
+                    .transition()
+                    .duration(300)
+                    .attr("fill", cor);
+            }
+
+            // 💡 Animação e Interação das Pétalas
+            svg.selectAll("[id^='petal']")
+                .each(function() {
+                    animarPetala(this);  // Animação de altura
+                    pulsar(this);        // Animação pulsante
+                })
+                .on("mouseover", function() {
+                    mudarCor(this, "yellow");
+                })
+                .on("mouseout", function() {
+                    mudarCor(this, "red");
+                });
+
+            // 💡 Animação e Interação dos Triângulos
+            svg.selectAll("[id^='triangle']")
+                .on("click", function() {
+                    rotacionar(this);
+                })
+                .on("mouseover", function() {
+                    mudarCor(this, "orange");
+                })
+                .on("mouseout", function() {
+                    mudarCor(this, "yellow");
+                });
+
+            // 💡 Animação e Interação dos Losangos
+            svg.selectAll("[id^='losangle']")
+                .on("mouseover", function() {
+                    mudarCor(this, "blue");
+                })
+                .on("mouseout", function() {
+                    mudarCor(this, "yellow");
+                })
+                .on("click", function() {
+                    rotacionar(this);
+                });
+
+            // 💡 Animação e Interação dos Círculos Centrais (Balls)
+            svg.selectAll("[id^='ball']")
+                .on("mouseover", function() {
+                    mudarCor(this, "white");
+                })
+                .on("mouseout", function() {
+                    mudarCor(this, "orange");
+                })
+                .on("click", function() {
+                    rotacionar(this);
+                });
+        });
+    </script>
+</body>
+</html>
