@@ -1,167 +1,103 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <title>Mandala Interativa com D3.js</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1c1c1c;
-            color: white;
-            text-align: center;
-        }
-
-        svg {
-            margin: 20px auto;
-            border: 2px solid #444;
-            background-color: #333;
-            display: block;
-            max-width: 80%;
-            height: auto;
-        }
-
-        h2 {
-            margin-top: 20px;
-            color: #ddd;
-        }
-    </style>
+  <meta charset="utf-8">
+  <title>Mandala Interativa com D3.js</title>
+  <!-- Importa o D3.js via CDN -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 20px;
+    }
+    svg {
+      border: 1px solid #ccc;
+      margin: auto;
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <h2>Mandala Interativa com D3.js</h2>
+  <h1>Mandala Interativa com D3.js</h1>
+  <!-- Seu SVG da mandala; substitua os elementos abaixo pelo seu código SVG com os IDs apropriados -->
+  <svg id="mandala" width="600" height="600" viewBox="0 0 600 600">
+    <!-- Exemplo de componentes da mandala -->
+    <circle id="circle1" cx="300" cy="300" r="200" fill="none" stroke="blue" stroke-width="5"/>
+    <circle id="circle2" cx="300" cy="300" r="150" fill="none" stroke="red" stroke-width="5"/>
+    <circle id="circle3" cx="300" cy="300" r="100" fill="none" stroke="green" stroke-width="5"/>
+  </svg>
+  
+  <script>
+    // Seleciona o SVG
+    const svg = d3.select("#mandala");
 
-    <!-- Contêiner para a Mandala -->
-    <div id="mandala-container"></div>
+    // Cria um grupo para encapsular todos os elementos da mandala.
+    // Isso facilita a aplicação de transformações (zoom e rotação) em conjunto.
+    const mandalaGroup = svg.append("g").attr("id", "mandala-group");
+    // Move todos os elementos existentes (exceto o grupo recém-criado) para dentro do grupo.
+    svg.selectAll("*:not(#mandala-group)").each(function() {
+      mandalaGroup.node().appendChild(this);
+    });
 
-    <script>
-        // Carregar o arquivo SVG da mandala
-        d3.xml("mandala.svg").then(data => {
-            const svgNode = data.documentElement;
-            document.getElementById("mandala-container").appendChild(svgNode);
+    // Configuração do zoom usando D3
+    const zoom = d3.zoom()
+      .scaleExtent([0.5, 10]) // Limita os níveis de zoom
+      .on("zoom", (event) => {
+        mandalaGroup.attr("transform", event.transform);
+      });
+    svg.call(zoom);
 
-            const svg = d3.select("svg");
+    // Adiciona interações e animações aos componentes da mandala
+    mandalaGroup.selectAll("*").each(function() {
+      const element = d3.select(this);
+      
+      // Efeito ao passar o mouse: aumenta temporariamente a largura do stroke
+      element.on("mouseover", function() {
+        d3.select(this)
+          .transition()
+          .duration(300)
+          .attr("stroke-width", 10);
+      })
+      .on("mouseout", function() {
+        d3.select(this)
+          .transition()
+          .duration(300)
+          .attr("stroke-width", 5);
+      });
+      
+      // Clique: alterna o preenchimento entre "yellow" e "none"
+      element.on("click", function(event) {
+        // Evita que o clique interfira na função de zoom
+        event.stopPropagation();
+        const currentFill = d3.select(this).attr("fill");
+        if (currentFill === "yellow") {
+          d3.select(this)
+            .transition()
+            .duration(300)
+            .attr("fill", "none");
+        } else {
+          d3.select(this)
+            .transition()
+            .duration(300)
+            .attr("fill", "yellow");
+        }
+      });
+    });
 
-            // 💡 Função de Zoom e Pan
-            const zoom = d3.zoom()
-                .scaleExtent([0.5, 5])
-                .on("zoom", function (event) {
-                    svg.attr("transform", event.transform);
-                });
-
-            svg.call(zoom);
-
-            // 💡 Função de Animação Pulsante
-            function pulsar(element) {
-                d3.select(element)
-                    .transition()
-                    .duration(1000)
-                    .attr("transform", "scale(1.1)")
-                    .transition()
-                    .duration(1000)
-                    .attr("transform", "scale(1)")
-                    .on("end", () => pulsar(element));
-            }
-
-            // 💡 Função de Animação de Rotação
-            function rotacionar(element) {
-                d3.select(element)
-                    .transition()
-                    .duration(2000)
-                    .attr("transform", "rotate(360)")
-                    .on("end", () => d3.select(element).attr("transform", "rotate(0)"));
-            }
-
-            // 💡 Função de Arrastar com Drag
-            function dragstarted(event, d) {
-                d3.select(this).raise().attr("stroke", "black");
-            }
-
-            function dragged(event, d) {
-                d3.select(this)
-                    .attr("x", event.x)
-                    .attr("y", event.y);
-            }
-
-            function dragended(event, d) {
-                d3.select(this).attr("stroke", null);
-            }
-
-            const dragBehavior = d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended);
-
-            // 💡 Função de Mudança de Cor ao Passar o Mouse
-            function mudarCor(element, cor) {
-                d3.select(element)
-                    .transition()
-                    .duration(300)
-                    .attr("fill", cor);
-            }
-
-            // 💡 Interação e Animação das Pétalas
-            svg.selectAll("[id^='petal']")
-                .each(function() {
-                    pulsar(this);  // Animação contínua
-                })
-                .call(dragBehavior)
-                .on("mouseover", function() {
-                    mudarCor(this, "yellow");
-                })
-                .on("mouseout", function() {
-                    mudarCor(this, "red");
-                });
-
-            // 💡 Interação e Animação dos Triângulos
-            svg.selectAll("[id^='triangle']")
-                .on("click", function() {
-                    rotacionar(this);
-                })
-                .on("mouseover", function() {
-                    mudarCor(this, "orange");
-                })
-                .on("mouseout", function() {
-                    mudarCor(this, "yellow");
-                });
-
-            // 💡 Interação e Animação dos Losangos
-            svg.selectAll("[id^='losangle']")
-                .on("click", function() {
-                    rotacionar(this);
-                })
-                .on("mouseover", function() {
-                    mudarCor(this, "blue");
-                })
-                .on("mouseout", function() {
-                    mudarCor(this, "yellow");
-                });
-
-            // 💡 Interação e Animação dos Círculos Centrais (Balls)
-            svg.selectAll("[id^='ball']")
-                .on("click", function() {
-                    rotacionar(this);
-                })
-                .on("mouseover", function() {
-                    mudarCor(this, "white");
-                })
-                .on("mouseout", function() {
-                    mudarCor(this, "orange");
-                });
-
-            // 💡 QuadTree para Seleção Otimizada
-            const quadTree = d3.quadtree()
-                .x(d => parseFloat(d3.select(d).attr("cx")))
-                .y(d => parseFloat(d3.select(d).attr("cy")))
-                .addAll(svg.selectAll("circle").nodes());
-
-            svg.on("click", function(event) {
-                const [mx, my] = d3.pointer(event);
-                const found = quadTree.find(mx, my);
-                if (found) {
-                    mudarCor(found, "cyan");
-                }
-            });
-        });
-    </script>
+    // Função para animar a rotação contínua da mandala
+    function animateRotation() {
+      mandalaGroup.transition()
+        .duration(10000) // Duração de 10 segundos para uma volta completa
+        .attrTween("transform", function() {
+          // Gira em torno do centro (300,300) — ajuste se necessário
+          return d3.interpolateString("rotate(0,300,300)", "rotate(360,300,300)");
+        })
+        .on("end", animateRotation); // Reinicia a animação ao término
+    }
+    
+    // Inicia a animação de rotação
+    animateRotation();
+  </script>
 </body>
 </html>
