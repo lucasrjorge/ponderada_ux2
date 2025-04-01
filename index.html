@@ -1,103 +1,25 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-br">
 <head>
-  <meta charset="utf-8">
-  <title>Mandala Interativa com D3.js</title>
-  <!-- Importa o D3.js via CDN -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      margin-top: 20px;
-    }
-    svg {
-      border: 1px solid #ccc;
-      margin: auto;
-      display: block;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atividade Ponderada 2 - D3.js</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Mandala Interativa com D3.js</h1>
-  <!-- Seu SVG da mandala; substitua os elementos abaixo pelo seu código SVG com os IDs apropriados -->
-  <svg id="mandala" width="600" height="600" viewBox="0 0 600 600">
-    <!-- Exemplo de componentes da mandala -->
-    <circle id="circle1" cx="300" cy="300" r="200" fill="none" stroke="blue" stroke-width="5"/>
-    <circle id="circle2" cx="300" cy="300" r="150" fill="none" stroke="red" stroke-width="5"/>
-    <circle id="circle3" cx="300" cy="300" r="100" fill="none" stroke="green" stroke-width="5"/>
-  </svg>
-  
-  <script>
-    // Seleciona o SVG
-    const svg = d3.select("#mandala");
+    <h1>Visualização Interativa com D3.js</h1>
+    <div id="tooltip" class="tooltip" style="opacity:0;"></div>
+    <div id="chart">
+        <svg id="visualization"></svg>
+    </div>
+    <div id="legend">
+        <h2>Legenda</h2>
+        <!-- A legenda será gerada pelo D3.js -->
+    </div>
 
-    // Cria um grupo para encapsular todos os elementos da mandala.
-    // Isso facilita a aplicação de transformações (zoom e rotação) em conjunto.
-    const mandalaGroup = svg.append("g").attr("id", "mandala-group");
-    // Move todos os elementos existentes (exceto o grupo recém-criado) para dentro do grupo.
-    svg.selectAll("*:not(#mandala-group)").each(function() {
-      mandalaGroup.node().appendChild(this);
-    });
-
-    // Configuração do zoom usando D3
-    const zoom = d3.zoom()
-      .scaleExtent([0.5, 10]) // Limita os níveis de zoom
-      .on("zoom", (event) => {
-        mandalaGroup.attr("transform", event.transform);
-      });
-    svg.call(zoom);
-
-    // Adiciona interações e animações aos componentes da mandala
-    mandalaGroup.selectAll("*").each(function() {
-      const element = d3.select(this);
-      
-      // Efeito ao passar o mouse: aumenta temporariamente a largura do stroke
-      element.on("mouseover", function() {
-        d3.select(this)
-          .transition()
-          .duration(300)
-          .attr("stroke-width", 10);
-      })
-      .on("mouseout", function() {
-        d3.select(this)
-          .transition()
-          .duration(300)
-          .attr("stroke-width", 5);
-      });
-      
-      // Clique: alterna o preenchimento entre "yellow" e "none"
-      element.on("click", function(event) {
-        // Evita que o clique interfira na função de zoom
-        event.stopPropagation();
-        const currentFill = d3.select(this).attr("fill");
-        if (currentFill === "yellow") {
-          d3.select(this)
-            .transition()
-            .duration(300)
-            .attr("fill", "none");
-        } else {
-          d3.select(this)
-            .transition()
-            .duration(300)
-            .attr("fill", "yellow");
-        }
-      });
-    });
-
-    // Função para animar a rotação contínua da mandala
-    function animateRotation() {
-      mandalaGroup.transition()
-        .duration(10000) // Duração de 10 segundos para uma volta completa
-        .attrTween("transform", function() {
-          // Gira em torno do centro (300,300) — ajuste se necessário
-          return d3.interpolateString("rotate(0,300,300)", "rotate(360,300,300)");
-        })
-        .on("end", animateRotation); // Reinicia a animação ao término
-    }
-    
-    // Inicia a animação de rotação
-    animateRotation();
-  </script>
+    <!-- Inclua a biblioteca D3.js (use a versão mais recente ou a especificada em aula) -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Seu script D3.js -->
+    <script src="script.js"></script>
 </body>
 </html>

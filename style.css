@@ -1,0 +1,68 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+}
+
+#chart {
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+    position: relative; /* Importante para o tooltip */
+}
+
+.dot {
+    stroke: #333;
+    stroke-width: 0.5px;
+}
+
+.dot.highlighted {
+    stroke: black;
+    stroke-width: 2px;
+    fill-opacity: 1;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #ccc;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-size: 10px;
+    fill: #555;
+}
+
+.brush .selection {
+    fill: steelblue;
+    fill-opacity: 0.3;
+    stroke: steelblue;
+    stroke-width: 1px;
+}
+
+#legend svg {
+    display: block;
+    margin-top: 10px;
+}
+
+.legend-item {
+    cursor: default;
+}
+
+.legend-item text {
+    font-size: 12px;
+    dominant-baseline: middle;
+}
+
+/* Estilo básico para o Tooltip (opcional, mas útil) */
+.tooltip {
+    position: absolute;
+    text-align: center;
+    width: auto;
+    height: auto;
+    padding: 8px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none; /* Impede que o tooltip interfira nos eventos do mouse */
+}
